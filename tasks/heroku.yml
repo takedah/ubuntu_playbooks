@@ -1,0 +1,27 @@
+- hosts: localhost
+  become: yes
+  vars:
+    temp_dir: /tmp
+    heroku_toolbelt_file: heroku-cli-linux-x64.tar.gz
+    heroku_toolbelt_url: https://cli-assets.heroku.com/heroku-cli/channels/stable/{{heroku_toolbelt_file}}
+  tasks:
+    - name: create directory for heroku toolbelt
+      file: group=root mode=0755 owner=root path={{item}} state=directory
+      with_items:
+        - /usr/local/lib/heroku
+        - /usr/local/bin
+
+        - name: check exist or not src file
+          command: ls -l {{temp_dir}}/{{heroku_toolbelt_file}}
+          ignore_errors: true
+          register: is_exist
+
+        - name: download src file if not exist
+          command: chdir={{temp_dir}} curl -O {{heroku_toolbelt_url}}
+          when: is_exist|failed
+
+        - name: unarchive src file
+          command: chdir=/usr/local/lib tar xvf {{temp_dir}}/{{heroku_toolbelt_file}} -C heroku --strip-components 1
+
+        - name: create symlink to heroku toolbelt
+          file: src=/usr/local/lib/heroku/bin/heroku dest=/usr/local/bin/heroku state=link

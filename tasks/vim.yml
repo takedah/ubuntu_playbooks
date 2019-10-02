@@ -1,0 +1,87 @@
+- hosts: localhost
+  become: yes
+  vars:
+    user_name: hiroki
+    vim_url: https://github.com/vim/vim.git
+    vim_conf_option: --prefix=/usr/local --with-features=huge --enable-multibyte --enable-python3interp --enable-rubyinterp --enable-luainterp --enable-cscope --enable-fail-if-missing --with-lua-prefix=/usr/include/lua5.3
+    vim_version: 8.1
+  tasks:
+    - name: check vim version
+      become: "{{user_name}}"
+      remote_user: "{{user_name}}"
+      shell: source ~/.bash_profile; vim --version | grep -q "Vi IMproved {{vim_version}}"
+      register: is_vim_installed
+      failed_when: is_vim_installed.rc not in [0, 1]
+
+    - name: install packages for building vim
+      apt: name="{{item}}" state=present
+      with_items:
+        - make
+        - gcc
+        - ctags
+        - ncurses-dev
+        - lua5.3
+        - liblua5.3-0
+        - liblua5.3-dev
+        - ruby-dev
+        - python-dev
+        - python3-distutils
+      when: is_vim_installed.rc == 1
+
+    - name: create liblua directory
+      file:
+        path: /usr/include/lua5.3/include
+        state: directory
+      when: is_vim_installed.rc == 1
+
+    - name: copy liblua files
+      command:
+        "{{item}}"
+      with_items:
+        - cp /usr/include/lua5.3/lauxlib.h /usr/include/lua5.3/include/
+        - cp /usr/include/lua5.3/lua.h /usr/include/lua5.3/include/
+        - cp /usr/include/lua5.3/lua.hpp /usr/include/lua5.3/include/
+        - cp /usr/include/lua5.3/luaconf.h /usr/include/lua5.3/include/
+        - cp /usr/include/lua5.3/lualib.h /usr/include/lua5.3/include/
+      when: is_vim_installed.rc == 1
+
+    - name: create liblua symbolic link
+      file:
+        src: /usr/lib/x86_64-linux-gnu/liblua5.3.so.0.0.0
+        dest: /usr/lib/liblua.so
+        state: link
+      when: is_vim_installed.rc == 1
+
+    - name: create vim source directory
+      file: path=/usr/local/src/vim.git state=directory owner="{{user_name}}" group="{{user_name}}" mode=0755
+      when: is_vim_installed.rc == 1
+
+    - name: download vim source file
+      git: repo="{{vim_url}}" dest=/usr/local/src/vim.git accept_hostkey=yes
+      become: no
+      when: is_vim_installed.rc == 1
+
+    - name: configure vim
+      become: "{{user_name}}"
+      shell: >
+        {{item}}
+        chdir=/usr/local/src/vim.git
+      with_items:
+        - 'source $HOME/.bash_profile; ./configure {{vim_conf_option}}'
+      when: is_vim_installed.rc == 1
+
+    - name: uninstall pre-install vim
+      apt:
+        name: vim
+        state: absent
+      when: is_vim_installed.rc == 1
+
+    - name: install vim
+      command: >
+        {{item}}
+        chdir=/usr/local/src/vim.git
+        creates=/usr/local/bin/vim
+      with_items:
+        - make
+        - make install
+      when: is_vim_installed.rc == 1
