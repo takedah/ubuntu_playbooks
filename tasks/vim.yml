@@ -6,13 +6,6 @@
     vim_conf_option: --prefix=/usr/local --with-features=huge --enable-multibyte --enable-python3interp --enable-rubyinterp --enable-luainterp --enable-cscope --enable-fail-if-missing --with-lua-prefix=/usr/include/lua5.3
     vim_version: 8.1
   tasks:
-    - name: check vim version
-      become: "{{user_name}}"
-      remote_user: "{{user_name}}"
-      shell: source ~/.bash_profile; vim --version | grep -q "Vi IMproved {{vim_version}}"
-      register: is_vim_installed
-      failed_when: is_vim_installed.rc not in [0, 1]
-
     - name: install packages for building vim
       apt: name="{{item}}" state=present
       with_items:
@@ -26,7 +19,13 @@
         - ruby-dev
         - python-dev
         - python3-distutils
-      when: is_vim_installed.rc == 1
+
+    - name: check vim version
+      become: "{{user_name}}"
+      remote_user: "{{user_name}}"
+      shell: source ~/.bash_profile; vim --version | grep -q "Vi IMproved {{vim_version}}"
+      register: is_vim_installed
+      failed_when: is_vim_installed.rc not in [0, 1]
 
     - name: create liblua directory
       file:

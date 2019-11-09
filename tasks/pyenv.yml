@@ -22,7 +22,6 @@
         - libsqlite3-dev
         - libbz2-dev
         - libffi-dev
-      when: is_python_installed.rc == 1
 
     - name: get pyenv from github
       become: "{{user_name}}"

@@ -6,6 +6,15 @@
     tmux_version: 2.9
     tmux_source_url: https://github.com/tmux/tmux/releases/download/{{tmux_version}}/tmux-{{tmux_version}}.tar.gz
   tasks:
+    - name: install packages for building tmux
+      apt: name="{{item}}" state=present
+      with_items:
+        - make
+        - gcc
+        - libevent-dev
+        - ncurses-dev
+        - xsel
+
     - name: check tmux version
       become: "{{user_name}}"
       remote_user: "{{user_name}}"
@@ -24,15 +33,6 @@
         src={{src_dir}}/tmux-{{tmux_version}}.tar.gz
         dest=/usr/local/src
         copy=no
-      when: is_tmux_installed.rc == 1
-
-    - name: install packages for building tmux
-      apt: name="{{item}}" state=present
-      with_items:
-        - make
-        - gcc
-        - libevent-dev
-        - ncurses-dev
       when: is_tmux_installed.rc == 1
 
     - name: install tmux

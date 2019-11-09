@@ -25,7 +25,6 @@
         - ruby-dev
         - libffi-dev
         - nodejs
-      when: is_ruby_installed.rc == 1
 
     - name: get rbenv from github
       become: "{{user_name}}"
