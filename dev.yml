@@ -1,0 +1,9 @@
+- name: deploy develop hosts
+  hosts: test
+  become: yes
+  roles:
+    - common
+    - tmux
+    - pyenv
+    - rbenv
+    - heroku

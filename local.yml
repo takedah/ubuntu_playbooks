@@ -1,0 +1,9 @@
+- name: deploy self
+  hosts: localhost
+  become: yes
+  roles:
+    - common
+    - tmux
+    - pyenv
+    - rbenv
+    - heroku
