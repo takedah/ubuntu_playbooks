@@ -7,7 +7,7 @@ vim_url: https://github.com/vim/vim.git
 vim_conf_option: --prefix=/usr/local --with-features=huge --enable-multibyte --enable-python3interp --enable-rubyinterp --enable-luainterp --enable-cscope --enable-fail-if-missing --with-lua-prefix=/usr/include/lua5.3
 vim_version: 8.1
 pybenv_url: https://github.com/yyuu/pyenv.git
-python_version: 3.7.4
+python_version: 3.7.6
 heroku_toolbelt_file: heroku-cli-linux-x64.tar.gz
 heroku_toolbelt_url: https://cli-assets.heroku.com/heroku-cli/channels/stable/{{heroku_toolbelt_file}}
 rbenv_url: https://github.com/sstephenson/rbenv.git

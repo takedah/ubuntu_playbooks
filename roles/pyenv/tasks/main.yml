@@ -8,6 +8,7 @@
     - libsqlite3-dev
     - libbz2-dev
     - libffi-dev
+    - lzma-dev
 
 - name: get pyenv from github
   become: "{{user_name}}"
