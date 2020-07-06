@@ -9,6 +9,10 @@
     - libbz2-dev
     - libffi-dev
     - lzma-dev
+    - python3-dev
+    - libpq-dev
+    - postgresql
+    - postgresql-contrib
 
 - name: get pyenv from github
   become: "{{user_name}}"
