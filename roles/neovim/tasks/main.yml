@@ -1,0 +1,30 @@
+- name: install packages for building neovim
+  apt: name="{{item}}" state=present
+  with_items:
+    - cmake
+
+- name: check neovim version
+  become: yes
+  become_user: "{{user_name}}"
+  shell: . ~/.bash_profile; nvim -v | grep -q "NVIM v{{neovim_version}}"
+  register: is_neovim_installed
+  failed_when: is_neovim_installed.rc not in [0, 1]
+
+- name: create neovim source directory
+  file: path=/usr/local/src/neovim.git state=directory owner="{{user_name}}" group="{{user_name}}" mode=0755
+  when: is_neovim_installed.rc == 1
+
+- name: download neovim source file
+  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes
+  become: no
+  when: is_neovim_installed.rc == 1
+
+- name: install neovim
+  command: >
+    {{item}}
+    chdir=/usr/local/src/neovim.git
+    creates=/usr/local/bin/neovim
+  with_items:
+    - make CMAKE_BUILD_TYPE=RelWithDebInfo
+    - make install
+  when: is_neovim_installed.rc == 1

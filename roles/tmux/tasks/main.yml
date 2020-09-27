@@ -8,8 +8,8 @@
     - xsel
 
 - name: check tmux version
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: source ~/.bash_profile; tmux -V | grep -q "{{tmux_version}}"
   register: is_tmux_installed
   failed_when: is_tmux_installed.rc not in [0, 1]

@@ -13,8 +13,8 @@
     - python3-distutils
 
 - name: check vim version
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: . ~/.bash_profile; vim --version | grep -q "Vi IMproved {{vim_version}}"
   register: is_vim_installed
   failed_when: is_vim_installed.rc not in [0, 1]
@@ -53,7 +53,8 @@
   when: is_vim_installed.rc == 1
 
 - name: configure vim
-  become: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: >
     {{item}}
     chdir=/usr/local/src/vim.git

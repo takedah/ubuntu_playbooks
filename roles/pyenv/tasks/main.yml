@@ -15,20 +15,20 @@
     - postgresql-contrib
 
 - name: get pyenv from github
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   git: repo="{{pybenv_url}}" dest=~/.pyenv
 
 - name: check python version
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: export PATH="$HOME/.pyenv/bin:$PATH"; pyenv versions | grep -q "{{python_version}}"
   register: is_python_installed
   failed_when: is_python_installed.rc not in [0, 1]
 
 - name: install python
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: >
     {{item}}
   with_items:

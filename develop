@@ -2,4 +2,4 @@
 localhost ansible_connection=local
 
 [dev]
-test
+dev

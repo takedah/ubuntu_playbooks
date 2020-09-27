@@ -12,32 +12,32 @@
     - nodejs
 
 - name: get rbenv from github
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   git: repo="{{rbenv_url}}" dest=~/.rbenv
 
 - name: check ruby version
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: export PATH="$HOME/.rbenv/bin:$PATH"; rbenv versions | grep -q "{{ruby_version}}"
   register: is_ruby_installed
   failed_when: is_ruby_installed.rc not in [0, 1]
 
 - name: create directory for ruby-build
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   file: path=~/.rbenv/plugins state=directory mode=0755
   when: is_ruby_installed.rc == 1
 
 - name: get ruby-build from github
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   git: repo="{{ruby_build_url}}" dest=~/.rbenv/plugins/ruby-build
   when: is_ruby_installed.rc == 1
 
 - name: install ruby
-  become: "{{user_name}}"
-  remote_user: "{{user_name}}"
+  become: yes
+  become_user: "{{user_name}}"
   shell: >
     {{item}}
   with_items:

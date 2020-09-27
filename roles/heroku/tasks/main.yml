@@ -11,7 +11,7 @@
 
 - name: download src file if not exist
   command: chdir={{temp_dir}} curl -O {{heroku_toolbelt_url}}
-  when: is_exist|failed
+  when: is_exist is failed
 
 - name: unarchive src file
   command: chdir=/usr/local/lib tar xvf {{temp_dir}}/{{heroku_toolbelt_file}} -C heroku --strip-components 1
