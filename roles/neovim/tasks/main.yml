@@ -2,6 +2,8 @@
   apt: name="{{item}}" state=present
   with_items:
     - cmake
+    - libuv1-dev
+    - gettext
 
 - name: check neovim version
   become: yes
@@ -25,6 +27,6 @@
     chdir=/usr/local/src/neovim.git
     creates=/usr/local/bin/neovim
   with_items:
-    - make CMAKE_BUILD_TYPE=RelWithDebInfo
+    - make CMAKE_BUILD_TYPE=Release
     - make install
   when: is_neovim_installed.rc == 1
