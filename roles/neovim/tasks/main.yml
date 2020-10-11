@@ -1,6 +1,7 @@
 - name: install packages for building neovim
   apt: name="{{item}}" state=present
   with_items:
+    - build-essential
     - cmake
     - libuv1-dev
     - gettext
