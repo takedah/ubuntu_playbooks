@@ -33,7 +33,7 @@
     chdir={{src_dir}}/tmux-{{tmux_version}}
     creates=/usr/local/bin/tmux
   with_items:
-    - ./configure
+    - ./configure --enable-static
     - make
     - make install
   when: is_tmux_installed.rc == 1

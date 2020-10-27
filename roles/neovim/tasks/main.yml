@@ -18,7 +18,7 @@
   when: is_neovim_installed.rc == 1
 
 - name: download neovim source file
-  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes
+  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes force=yes
   become: no
   when: is_neovim_installed.rc == 1
 
