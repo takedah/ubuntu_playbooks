@@ -6,10 +6,15 @@
     - libuv1-dev
     - gettext
 
+- name: install pynvim
+  become: yes
+  become_user: "{{user_name}}"
+  shell: /home/"{{user_name}}"/.pyenv/shims/python -m pip install pynvim
+
 - name: check neovim version
   become: yes
   become_user: "{{user_name}}"
-  shell: . ~/.bash_profile; nvim -v | grep -q "NVIM v{{neovim_version}}"
+  shell: . ~/.bash_profile; nvim -v | grep -q "NVIM {{neovim_version}}"
   register: is_neovim_installed
   failed_when: is_neovim_installed.rc not in [0, 1]
 
@@ -18,7 +23,7 @@
   when: is_neovim_installed.rc == 1
 
 - name: download neovim source file
-  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes force=yes
+  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes force=yes version="{{neovim_version}}"
   become: no
   when: is_neovim_installed.rc == 1
 

@@ -5,6 +5,5 @@
     - common
     - tmux
     - pyenv
-    - rbenv
     - heroku
     - neovim
