@@ -15,3 +15,4 @@ heroku_toolbelt_url: https://cli-assets.heroku.com/heroku-cli/channels/stable/{{
 rbenv_url: https://github.com/sstephenson/rbenv.git
 ruby_build_url: https://github.com/sstephenson/ruby-build.git
 ruby_version: 2.7.2
+docker_compose_version: 1.16.1

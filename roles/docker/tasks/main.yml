@@ -1,19 +1,34 @@
 - name: add dockers official GPG key
   ansible.builtin.apt_key:
-      url: https://download.docker.com/linux/ubuntu/gpg
-      keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+    url: https://download.docker.com/linux/ubuntu/gpg
+    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
 
 - name: set up the stable repository
   shell: >
-      echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
 
 - name: apt update
   apt:
-      update_cache: yes
+    update_cache: yes
 
 - name: install Docker Engine
   apt:
-      name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+
+- name: download doccker-compose
+  shell: curl -L https://github.com/docker/compose/releases/download/{{docker_compose_version}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+- name: check exist or not src file
+  command: ls -l /usr/local/bin/docker-compose
+  ignore_errors: true
+  register: is_exist
+
+- name: add exec privilege to docker-compose
+  file:
+    path: /usr/local/bin/docker-compose
+    state: file
+    mode: 0755
+  when: is_exist
