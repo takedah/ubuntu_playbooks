@@ -6,6 +6,12 @@
     - libuv1-dev
     - gettext
 
+- name: install packages for building neovim (--force-overwrite)
+  apt: name="{{item}}" state=present dpkg_options="force-overwrite"
+  with_items:
+    - bat
+    - ripgrep
+
 - name: install pynvim
   become: yes
   become_user: "{{user_name}}"
@@ -36,3 +42,8 @@
     - make CMAKE_BUILD_TYPE=Release
     - make install
   when: is_neovim_installed.rc == 1
+
+- name: download vim-plug
+  become: yes
+  become_user: "{{user_name}}"
+  command: curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs {{vim_plug_url}}
