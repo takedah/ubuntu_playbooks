@@ -18,13 +18,14 @@
       - docker-ce-cli
       - containerd.io
 
-- name: download doccker-compose
-  shell: curl -L https://github.com/docker/compose/releases/download/{{docker_compose_version}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-
 - name: check exist or not src file
   command: ls -l /usr/local/bin/docker-compose
   ignore_errors: true
   register: is_exist
+
+- name: download doccker-compose
+  shell: curl -L https://github.com/docker/compose/releases/download/{{docker_compose_version}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+  when: is_exist.rc == 2
 
 - name: add exec privilege to docker-compose
   file:

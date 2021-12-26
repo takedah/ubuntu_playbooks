@@ -5,6 +5,8 @@
     - common
     - tmux
     - pyenv
+    - rbenv
+    - nvm
     - heroku
     - neovim
     - docker

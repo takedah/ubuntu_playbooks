@@ -1,5 +1,7 @@
 - name: install packeges for rbenv and ruby-build
-  apt: name="{{item}}" state=present
+  apt:
+    name: "{{item}}"
+    state: present
   with_items:
     - gcc
     - libssl-dev
@@ -14,7 +16,9 @@
 - name: get rbenv from github
   become: yes
   become_user: "{{user_name}}"
-  git: repo="{{rbenv_url}}" dest=~/.rbenv
+  git:
+    repo: "{{rbenv_url}}"
+    dest: $HOME/.rbenv
 
 - name: check ruby version
   become: yes
@@ -26,13 +30,18 @@
 - name: create directory for ruby-build
   become: yes
   become_user: "{{user_name}}"
-  file: path=~/.rbenv/plugins state=directory mode=0755
+  file:
+    path: $HOME/.rbenv/plugins
+    state: directory
+    mode: 0755
   when: is_ruby_installed.rc == 1
 
 - name: get ruby-build from github
   become: yes
   become_user: "{{user_name}}"
-  git: repo="{{ruby_build_url}}" dest=~/.rbenv/plugins/ruby-build
+  git:
+    repo: "{{ruby_build_url}}"
+    dest: $HOME/.rbenv/plugins/ruby-build
   when: is_ruby_installed.rc == 1
 
 - name: install ruby
@@ -42,6 +51,7 @@
     {{item}}
   with_items:
     - export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"
-    - export PATH="$HOME/.rbenv/bin:$PATH"; rbenv install "{{ruby_version}}"
-    - export PATH="$HOME/.rbenv/bin:$PATH"; rbenv global "{{ruby_version}}"
+    - export PATH="$HOME/.rbenv/bin:$PATH"; rbenv install {{ruby_version}}
+    - export PATH="$HOME/.rbenv/bin:$PATH"; rbenv global {{ruby_version}}
+    - export PATH="$HOME/.rbenv/bin:$PATH"; rbenv rehash
   when: is_ruby_installed.rc == 1

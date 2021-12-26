@@ -1,5 +1,7 @@
 - name: install packeges for pybenv
-  apt: name="{{item}}" state=present
+  apt:
+    name: "{{item}}"
+    state: present
   with_items:
     - gcc
     - libssl-dev
@@ -17,7 +19,9 @@
 - name: get pyenv from github
   become: yes
   become_user: "{{user_name}}"
-  git: repo="{{pybenv_url}}" dest=~/.pyenv
+  git:
+    repo: "{{pybenv_url}}"
+    dest: $HOME/.pyenv
 
 - name: check python version
   become: yes

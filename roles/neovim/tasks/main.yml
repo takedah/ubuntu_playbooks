@@ -1,13 +1,18 @@
 - name: install packages for building neovim
-  apt: name="{{item}}" state=present
+  apt:
+    name: "{{item}}"
+    state: present
   with_items:
     - build-essential
     - cmake
     - libuv1-dev
     - gettext
 
-- name: install packages for building neovim (--force-overwrite)
-  apt: name="{{item}}" state=present dpkg_options="force-overwrite"
+- name: install packages for neovim plugin (--force-overwrite)
+  apt:
+    name: "{{item}}"
+    state: present
+    dpkg_options: "force-overwrite"
   with_items:
     - bat
     - ripgrep
@@ -17,6 +22,16 @@
   become_user: "{{user_name}}"
   shell: /home/"{{user_name}}"/.pyenv/shims/python -m pip install pynvim
 
+- name: install nodejs
+  become: yes
+  become_user: "{{ user_name }}"
+  shell: npm install -g neovim
+
+- name: install ruby
+  become: yes
+  become_user: "{{ user_name }}"
+  shell: export PATH="$HOME/.rbenv/bin:$PATH"; gem install neovim
+
 - name: check neovim version
   become: yes
   become_user: "{{user_name}}"
@@ -25,11 +40,21 @@
   failed_when: is_neovim_installed.rc not in [0, 1]
 
 - name: create neovim source directory
-  file: path=/usr/local/src/neovim.git state=directory owner="{{user_name}}" group="{{user_name}}" mode=0755
+  file:
+    path: /usr/local/src/neovim.git
+    state: directory
+    owner: "{{user_name}}"
+    group: "{{user_name}}"
+    mode: 0755
   when: is_neovim_installed.rc == 1
 
 - name: download neovim source file
-  git: repo="{{neovim_url}}" dest=/usr/local/src/neovim.git accept_hostkey=yes force=yes version="{{neovim_version}}"
+  git:
+    repo: "{{neovim_url}}"
+    dest: /usr/local/src/neovim.git
+    accept_hostkey: yes
+    force: yes
+    version: "{{neovim_version}}"
   become: no
   when: is_neovim_installed.rc == 1
 

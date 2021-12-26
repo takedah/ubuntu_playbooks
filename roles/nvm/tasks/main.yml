@@ -1,0 +1,24 @@
+- name: install nvm
+  become: yes
+  become_user: "{{user_name}}"
+  shell: >
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+  args:
+    creates: $HOME/.nvm/nvm.sh
+
+- name: check nodejs version
+  become: yes
+  become_user: "{{user_name}}"
+  shell: node -v | grep -q "{{nodejs_version}}"
+  register: is_nodejs_installed
+  failed_when: is_nodejs_installed.rc not in [0, 1]
+
+- name: install nodejs
+  become: yes
+  become_user: "{{user_name}}"
+  shell: >
+    {{item}}
+  with_items:
+      - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install {{nodejs_major_version}}
+      - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm use {{nodejs_major_version}}
+  when: is_nodejs_installed.rc == 1

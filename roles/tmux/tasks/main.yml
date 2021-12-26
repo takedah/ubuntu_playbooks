@@ -1,5 +1,7 @@
 - name: install packages for building tmux
-  apt: name="{{item}}" state=present
+  apt:
+    name: "{{item}}"
+    state: present
   with_items:
     - make
     - gcc
@@ -16,15 +18,15 @@
 
 - name: download tmux source file
   get_url:
-    url={{tmux_source_url}}
-    dest={{src_dir}}/tmux-{{tmux_version}}.tar.gz
+    url: "{{tmux_source_url}}"
+    dest: "{{src_dir}}/tmux-{{tmux_version}}.tar.gz"
   when: is_tmux_installed.rc == 1
 
 - name: extract tmux source file
   unarchive:
-    src={{src_dir}}/tmux-{{tmux_version}}.tar.gz
-    dest=/usr/local/src
-    copy=no
+    src: "{{src_dir}}/tmux-{{tmux_version}}.tar.gz"
+    dest: /usr/local/src
+    copy: no
   when: is_tmux_installed.rc == 1
 
 - name: install tmux
