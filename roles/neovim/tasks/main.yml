@@ -9,6 +9,7 @@
     - gettext
     - libtool
     - libtool-bin
+    - pkg-config
 
 - name: install packages for neovim plugin (--force-overwrite)
   apt:

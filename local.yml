@@ -3,10 +3,10 @@
   become: yes
   roles:
     - common
-    - tmux
     - pyenv
     - rbenv
     - nvm
     - heroku
     - neovim
     - docker
+    - tmux
