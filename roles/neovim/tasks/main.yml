@@ -8,6 +8,7 @@
     - libuv1-dev
     - gettext
     - libtool
+    - libtool-bin
 
 - name: install packages for neovim plugin (--force-overwrite)
   apt:
