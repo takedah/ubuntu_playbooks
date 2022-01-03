@@ -20,17 +20,17 @@
 - name: install pynvim
   become: yes
   become_user: "{{user_name}}"
-  shell: /home/"{{user_name}}"/.pyenv/shims/python -m pip install pynvim
+  shell: source $HOME/.bash_profile; python -m pip install pynvim
 
 - name: install nodejs
   become: yes
   become_user: "{{ user_name }}"
-  shell: source ~/.bash_profile; npm install -g neovim
+  shell: source $HOME/.bash_profile; npm install -g neovim
 
 - name: install ruby
   become: yes
   become_user: "{{ user_name }}"
-  shell: export PATH="$HOME/.rbenv/bin:$PATH"; gem install neovim
+  shell: source $HOME/.bash_profile; gem install neovim
 
 - name: check neovim version
   become: yes
