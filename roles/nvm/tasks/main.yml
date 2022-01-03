@@ -13,6 +13,15 @@
   register: is_nodejs_installed
   failed_when: is_nodejs_installed.rc not in [0, 1]
 
+- name: create directory for nodejs
+  become: yes
+  become_user: "{{user_name}}"
+  file:
+    path: $HOME/.config/nvm
+    state: directory
+    mode: 0755
+  when: is_nodejs_installed.rc == 1
+
 - name: install nodejs
   become: yes
   become_user: "{{user_name}}"
