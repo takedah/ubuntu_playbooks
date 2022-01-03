@@ -7,6 +7,7 @@
     - cmake
     - libuv1-dev
     - gettext
+    - libtool
 
 - name: install packages for neovim plugin (--force-overwrite)
   apt:
