@@ -25,7 +25,7 @@
 - name: install nodejs
   become: yes
   become_user: "{{ user_name }}"
-  shell: npm install -g neovim
+  shell: source ~/.bash_profile; npm install -g neovim
 
 - name: install ruby
   become: yes
