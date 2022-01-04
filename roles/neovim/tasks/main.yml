@@ -10,6 +10,7 @@
     - libtool
     - libtool-bin
     - pkg-config
+    - fzf
 
 - name: install packages for neovim plugin (--force-overwrite)
   apt:
