@@ -76,3 +76,8 @@
   become: yes
   become_user: "{{user_name}}"
   command: curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs {{vim_plug_url}}
+
+- name: install diagnostic-languageserver
+  become: yes
+  become_user: "{{ user_name }}"
+  shell: source $HOME/.bash_profile; yarn global add diagnostic-languageserver
