@@ -6,7 +6,6 @@
     - pyenv
     - rbenv
     - nvm
-    - heroku
     - neovim
     - docker
     - tmux

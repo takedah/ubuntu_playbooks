@@ -69,6 +69,7 @@
     creates=/usr/local/bin/neovim
   with_items:
     - make CMAKE_BUILD_TYPE=Release
+    - make distclean
     - make install
   when: is_neovim_installed.rc == 1
 

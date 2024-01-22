@@ -1,2 +1,2 @@
-- include: local.yml
-- include: dev.yml
+- import_playbook: local.yml
+- import_playbook: dev.yml
