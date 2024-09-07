@@ -11,7 +11,7 @@
     - libbz2-dev
     - ruby-dev
     - libffi-dev
-    - nodejs
+    - libyaml
 
 - name: get rbenv from github
   become: yes
