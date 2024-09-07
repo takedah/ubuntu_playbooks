@@ -5,18 +5,18 @@ tmux_version: 2.9
 tmux_source_url: https://github.com/tmux/tmux/releases/download/{{tmux_version}}/tmux-{{tmux_version}}.tar.gz
 vim_url: https://github.com/vim/vim.git
 vim_conf_option: --prefix=/usr/local --with-features=huge --enable-multibyte --enable-python3interp --enable-rubyinterp --enable-luainterp --enable-cscope --enable-fail-if-missing --with-lua-prefix=/usr/include/lua5.3
-vim_version: 8.2
+vim_version: 9.1
 neovim_url: https://github.com/neovim/neovim.git
-neovim_version: v0.9.5
+neovim_version: v0.10.1
 pybenv_url: https://github.com/yyuu/pyenv.git
 python_version: 3.12.6
 heroku_toolbelt_file: heroku-cli-linux-x64.tar.gz
 heroku_toolbelt_url: https://cli-assets.heroku.com/heroku-cli/channels/stable/{{heroku_toolbelt_file}}
 rbenv_url: https://github.com/sstephenson/rbenv.git
 ruby_build_url: https://github.com/sstephenson/ruby-build.git
-ruby_version: 3.1.0
-docker_compose_version: 1.16.1
+ruby_version: 3.3.5
+docker_compose_version: 2.29.2
 vim_plug_url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-nodejs_version: 16.13.1
-nodejs_major_version: 16
+nodejs_version: 20.17.0
+nodejs_major_version: 20
 nvm_version: v0.40.1
