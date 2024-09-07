@@ -18,7 +18,7 @@
   become: yes
   become_user: "{{user_name}}"
   shell: >
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/{{ nvm_version }}/install.sh | bash
   args:
     creates: $HOME/.nvm/nvm.sh
 
