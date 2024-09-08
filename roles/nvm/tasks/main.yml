@@ -30,6 +30,7 @@
   with_items:
       - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install {{nodejs_major_version}}
       - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm use {{nodejs_major_version}}
+      - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm alias default {{nodejs_major_version}}
   when: is_nodejs_installed.rc == 1
 
 - name: install yarn
