@@ -82,3 +82,8 @@
   become: yes
   become_user: "{{ user_name }}"
   shell: source $HOME/.bash_profile; yarn global add diagnostic-languageserver
+
+- name: install jedi-language-server
+  become: yes
+  become_user: "{{ user_name }}"
+  shell: source $HOME/.bash_profile; pip install jedi-language-server
