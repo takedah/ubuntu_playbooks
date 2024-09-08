@@ -31,3 +31,8 @@
       - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm install {{nodejs_major_version}}
       - export NVM_DIR="$HOME/.config/nvm"; [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; nvm use {{nodejs_major_version}}
   when: is_nodejs_installed.rc == 1
+
+- name: install yarn
+  become: yes
+  become_user: "{{ user_name }}"
+  shell: source $HOME/.bash_profile; npm install -g yarn

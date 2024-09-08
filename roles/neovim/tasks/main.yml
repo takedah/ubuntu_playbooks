@@ -21,17 +21,17 @@
     - bat
     - ripgrep
 
-- name: install pynvim
+- name: install neovim pynvim
   become: yes
   become_user: "{{user_name}}"
   shell: source $HOME/.bash_profile; python -m pip install pynvim
 
-- name: install nodejs
+- name: install neovim nodejs
   become: yes
   become_user: "{{ user_name }}"
   shell: source $HOME/.bash_profile; npm install -g neovim
 
-- name: install ruby
+- name: install neovim ruby
   become: yes
   become_user: "{{ user_name }}"
   shell: source $HOME/.bash_profile; gem install neovim
