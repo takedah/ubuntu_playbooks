@@ -6,26 +6,18 @@
     - libevent-dev
     - ncurses-dev
     - xsel
-
-- name: check tmux version
-  become: yes
-  become_user: "{{user_name}}"
-  shell: source ~/.bash_profile; tmux -V | grep -q "{{tmux_version}}"
-  register: is_tmux_installed
-  failed_when: is_tmux_installed.rc not in [0, 1]
+    - bison
 
 - name: download tmux source file
   get_url:
     url: "{{tmux_source_url}}"
     dest: "{{src_dir}}/tmux-{{tmux_version}}.tar.gz"
-  when: is_tmux_installed.rc == 1
 
 - name: extract tmux source file
   unarchive:
     src: "{{src_dir}}/tmux-{{tmux_version}}.tar.gz"
     dest: /usr/local/src
     copy: no
-  when: is_tmux_installed.rc == 1
 
 - name: install tmux
   command: >
@@ -36,4 +28,3 @@
     - ./configure --enable-static
     - make
     - make install
-  when: is_tmux_installed.rc == 1
