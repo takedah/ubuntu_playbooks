@@ -1,7 +1,7 @@
 - name: check nodejs version
   become: yes
   become_user: "{{user_name}}"
-  shell: node -v | grep -q "{{nodejs_version}}"
+  shell: . $HOME/.profile; node -v | grep -q "{{nodejs_version}}"
   register: is_nodejs_installed
   failed_when: is_nodejs_installed.rc not in [0, 1]
 

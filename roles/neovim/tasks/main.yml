@@ -40,6 +40,15 @@
   register: is_neovim_installed
   failed_when: is_neovim_installed.rc not in [0, 1]
 
+- name: create directory for neovim config files
+  become: yes
+  become_user: "{{user_name}}"
+  file:
+    path: $HOME/.config/nvim
+    state: directory
+    mode: 0755
+  when: is_neovim_installed.rc == 1
+
 - name: create neovim source directory
   file:
     path: /usr/local/src/neovim.git
