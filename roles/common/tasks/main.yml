@@ -7,6 +7,9 @@
     - git
     - unzip
     - bzip2
+    - cmake
+    - build-essential
+    - pkg-config
     - sqlite3
     - snmp
     - xsel

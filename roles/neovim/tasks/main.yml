@@ -3,13 +3,10 @@
     name: "{{item}}"
     state: present
   with_items:
-    - build-essential
-    - cmake
     - libuv1-dev
     - gettext
     - libtool
     - libtool-bin
-    - pkg-config
     - fzf
 
 - name: install packages for neovim plugin (--force-overwrite)
@@ -24,22 +21,22 @@
 - name: install neovim pynvim
   become: yes
   become_user: "{{user_name}}"
-  shell: source $HOME/.bash_profile; python -m pip install pynvim
+  shell: export PATH="$HOME/.pyenv/bin:$PATH"; eval "$(pyenv init -)"; python -m pip install pynvim
 
 - name: install neovim nodejs
   become: yes
   become_user: "{{ user_name }}"
-  shell: source $HOME/.bash_profile; npm install -g neovim
+  shell: export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npm install -g neovim
 
 - name: install neovim ruby
   become: yes
   become_user: "{{ user_name }}"
-  shell: source $HOME/.bash_profile; gem install neovim
+  shell: export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; gem install neovim
 
 - name: check neovim version
   become: yes
   become_user: "{{user_name}}"
-  shell: . ~/.bash_profile; nvim -v | grep -q "NVIM {{neovim_version}}"
+  shell: . ~/.profile; nvim -v | grep -q "NVIM {{neovim_version}}"
   register: is_neovim_installed
   failed_when: is_neovim_installed.rc not in [0, 1]
 
@@ -81,9 +78,9 @@
 - name: install diagnostic-languageserver
   become: yes
   become_user: "{{ user_name }}"
-  shell: source $HOME/.bash_profile; yarn global add diagnostic-languageserver
+  shell: export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; yarn global add diagnostic-languageserver
 
 - name: install jedi-language-server
   become: yes
   become_user: "{{ user_name }}"
-  shell: source $HOME/.bash_profile; pip install jedi-language-server
+  shell: export PATH="$HOME/.pyenv/bin:$PATH"; eval "$(pyenv init -)"; pip install jedi-language-server

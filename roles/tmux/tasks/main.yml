@@ -3,8 +3,6 @@
     name: "{{item}}"
     state: present
   with_items:
-    - make
-    - gcc
     - libevent-dev
     - ncurses-dev
     - xsel
