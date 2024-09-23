@@ -17,6 +17,10 @@
       - docker-ce
       - docker-ce-cli
       - containerd.io
+      - live-build
+      - python3-tomli
+      - python3-git
+      - python3-jinja2
 
 - name: check exist or not src file
   command: ls -l /usr/local/bin/docker-compose
