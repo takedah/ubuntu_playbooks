@@ -1,6 +1,8 @@
 ---
-# Sakura Cloud の Ubuntu Server 26.04 LTS パブリックアーカイブの既定ユーザ
-user_name: ubuntu
+# docker グループに追加するユーザ。接続ユーザをそのまま使う。
+# 固定値にすると、ローカル実行や WSL2 でユーザ名が違ったときに
+# user モジュールがその名前で新規ユーザを作ってしまう。
+user_name: "{{ ansible_facts.user_id }}"
 
 dotfiles_repo: https://github.com/takedah/dotfiles.git
 dotfiles_dir: "{{ ansible_facts.env.HOME }}/dotfiles"

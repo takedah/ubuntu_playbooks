@@ -37,6 +37,9 @@
     src: "{{ neovim_install_dir }}/bin/nvim"
     dest: /usr/local/bin/nvim
     state: link
+    # 旧版の Playbook はここにソースビルドした実体を置いていた。
+    # force なしだと file モジュールが実体からリンクへの変換を拒否する。
+    force: true
 
 - name: Create vim-plug autoload directory
   ansible.builtin.file:
