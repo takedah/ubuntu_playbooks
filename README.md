@@ -69,6 +69,41 @@ $ ansible-playbook -i local local.yml --ask-become-pass
 3. `:checkhealth` で provider の状態を確認する
    `python3` と `node` が OK、`ruby` / `perl` は disabled になっていれば想定どおり
 
+## 旧版で構築済みのホストへ適用するとき
+
+旧版の Playbook を流したことがあるホストには、Playbook では消せない
+残骸がある。Playbook が自動で片付けるのは旧 `nvim` バイナリと
+旧 `docker.list` の2つだけなので、以下は手作業で確認する。
+
+**dotfiles が更新されない**
+`dotfiles` ロールは `update: false`（ホスト上での編集を巻き戻さないため）
+なので、clone 済みだと古いままになる。旧 `.profile` は pyenv / rbenv / nvm を
+読み込むため、ログインのたびにエラーが出て node にも PATH が通らない。
+
+```console
+$ git -C ~/dotfiles pull
+```
+
+**ソースビルドした tmux が優先される**
+旧版は tmux を `/usr/local/bin/tmux` にビルドしていた。apt 版は
+`/usr/bin/tmux` に入るが PATH では `/usr/local/bin` が先なので、
+古いほうが使われ続ける。エラーにならないので気づきにくい。
+
+```console
+$ which tmux            # /usr/local/bin/tmux なら旧ビルド
+$ sudo rm /usr/local/bin/tmux
+```
+
+**coc 拡張が自動で入らない**
+`~/.config/coc/extensions/package.json` に拡張が記載済みだと coc は
+導入済みと判断して何もしない。実体が消えていると、拡張が無いまま
+自動インストールも走らない状態になる。
+
+```console
+$ rm -rf ~/.config/coc
+$ nvim                  # 起動後、非同期で13個入る
+```
+
 ## Notes
 
 - Ubuntu 26.04 は sudo-rs と Rust 版 coreutils が既定。
