@@ -1,17 +1,59 @@
-- name: install common packages
-  apt:
-    name: "{{item}}"
+---
+# apt モジュールは通常実行なら python3-apt を自動で入れるが、--check では
+# 入れられずに失敗する。dry-run を最初に流せるよう raw で先回りしておく。
+- name: Ensure python3-apt is present
+  become: true
+  ansible.builtin.raw: |
+    if ! python3 -c "import apt" 2>/dev/null; then
+      export DEBIAN_FRONTEND=noninteractive
+      apt-get update -qq && apt-get install -y -qq python3-apt
+    fi
+  check_mode: false
+  changed_when: false
+
+- name: Install common packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - git
+      - unzip
+      - bzip2
+      - build-essential
+      - pkg-config
+      - sqlite3
+      - xsel
+      - ripgrep
+      - bat
+      - fd-find
+      - fzf
+      # mise / docker ロールが使う deb822_repository モジュールの依存
+      - python3-debian
+      # ネイティブ拡張を持つ Python パッケージをビルドするときに要る
+      - libpq-dev
+      - libssl-dev
+      - zlib1g-dev
+      - libffi-dev
     state: present
-  with_items:
-    - curl
-    - git
-    - unzip
-    - bzip2
-    - cmake
-    - build-essential
-    - pkg-config
-    - sqlite3
-    - snmp
-    - xsel
-    - postgresql
-    - postgresql-contrib
+    update_cache: true
+    cache_valid_time: 3600
+
+- name: Create ~/.local/bin
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/bin"
+    state: directory
+    mode: "0755"
+
+# Debian/Ubuntu では bat は batcat、fd は fdfind という名前で入る。
+# init.vim の $BAT_THEME と fzf-preview は `bat` / `fd` を呼ぶのでリンクを張る。
+- name: Link batcat and fdfind to their upstream names
+  ansible.builtin.file:
+    src: "/usr/bin/{{ item.src }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/bin/{{ item.dest }}"
+    state: link
+    # --check だと直前の apt が実行されず src が無いので、ここで止めない
+    force: true
+  loop:
+    - {src: batcat, dest: bat}
+    - {src: fdfind, dest: fd}

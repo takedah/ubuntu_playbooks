@@ -1,95 +1,66 @@
-- name: install packages for building neovim
-  apt:
-    name: "{{item}}"
-    state: present
-  with_items:
-    - libuv1-dev
-    - gettext
-    - libtool
-    - libtool-bin
-    - fzf
-
-- name: install packages for neovim plugin (--force-overwrite)
-  apt:
-    name: "{{item}}"
-    state: present
-    dpkg_options: "force-overwrite"
-  with_items:
-    - bat
-    - ripgrep
-
-- name: install neovim pynvim
-  become: yes
-  become_user: "{{user_name}}"
-  shell: export PATH="$HOME/.pyenv/bin:$PATH"; eval "$(pyenv init -)"; python -m pip install pynvim
-
-- name: install neovim nodejs
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; npm install -g neovim
-
-- name: install neovim ruby
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: export PATH="$HOME/.rbenv/bin:$PATH"; eval "$(rbenv init -)"; gem install neovim
-
-- name: check neovim version
-  become: yes
-  become_user: "{{user_name}}"
-  shell: . ~/.profile; nvim -v | grep -q "NVIM {{neovim_version}}"
-  register: is_neovim_installed
-  failed_when: is_neovim_installed.rc not in [0, 1]
-
-- name: create directory for neovim config files
-  become: yes
-  become_user: "{{user_name}}"
-  file:
-    path: $HOME/.config/nvim
+---
+- name: Create neovim install directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ neovim_install_dir }}"
     state: directory
-    mode: 0755
-  when: is_neovim_installed.rc == 1
+    owner: root
+    group: root
+    mode: "0755"
 
-- name: create neovim source directory
-  file:
-    path: /usr/local/src/neovim.git
+# 公式のビルド済み tarball を使う。ソースからのビルドはもうしない。
+# unarchive は checksum を取れないので、取得と展開を分けて検証を挟む。
+- name: Download the official neovim release tarball
+  become: true
+  ansible.builtin.get_url:
+    url: https://github.com/neovim/neovim/releases/download/{{ neovim_version }}/{{ neovim_tarball }}
+    dest: /usr/local/src/{{ neovim_tarball }}
+    checksum: "{{ neovim_checksum }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Install neovim from the tarball
+  become: true
+  ansible.builtin.unarchive:
+    src: /usr/local/src/{{ neovim_tarball }}
+    dest: "{{ neovim_install_dir }}"
+    remote_src: true
+    extra_opts: [--strip-components=1]
+    creates: "{{ neovim_install_dir }}/bin/nvim"
+    owner: root
+    group: root
+
+- name: Link nvim into PATH
+  become: true
+  ansible.builtin.file:
+    src: "{{ neovim_install_dir }}/bin/nvim"
+    dest: /usr/local/bin/nvim
+    state: link
+
+- name: Create vim-plug autoload directory
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.local/share/nvim/site/autoload"
     state: directory
-    owner: "{{user_name}}"
-    group: "{{user_name}}"
-    mode: 0755
-  when: is_neovim_installed.rc == 1
+    mode: "0755"
 
-- name: download neovim source file
-  git:
-    repo: "{{neovim_url}}"
-    dest: /usr/local/src/neovim.git
-    accept_hostkey: yes
-    force: yes
-    version: "{{neovim_version}}"
-  become: no
-  when: is_neovim_installed.rc == 1
+- name: Install vim-plug
+  ansible.builtin.get_url:
+    url: "{{ vim_plug_url }}"
+    dest: "{{ ansible_facts.env.HOME }}/.local/share/nvim/site/autoload/plug.vim"
+    checksum: "{{ vim_plug_checksum }}"
+    mode: "0644"
 
-- name: install neovim
-  command: >
-    {{item}}
-    chdir=/usr/local/src/neovim.git
-    creates=/usr/local/bin/neovim
-  with_items:
-    - make CMAKE_BUILD_TYPE=Release
-    - make distclean
-    - make install
-  when: is_neovim_installed.rc == 1
+# coc-settings.json の jedi.executable.command と diagnostic-languageserver の
+# formatters、および ale の black fixer が PATH 上に要求する。
+# uv tool install は ~/.local/bin に置くので .profile の PATH でそのまま通る。
+- name: Install python language server and formatters
+  ansible.builtin.command: mise exec -- uv tool install --quiet {{ item }}
+  args:
+    creates: "{{ ansible_facts.env.HOME }}/.local/share/uv/tools/{{ item }}"
+  loop: "{{ python_cli_tools }}"
 
-- name: download vim-plug
-  become: yes
-  become_user: "{{user_name}}"
-  command: curl -fLo ~/.local/share/nvim/site/autoload/plug.vim --create-dirs {{vim_plug_url}}
-
-- name: install diagnostic-languageserver
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"; yarn global add diagnostic-languageserver
-
-- name: install jedi-language-server
-  become: yes
-  become_user: "{{ user_name }}"
-  shell: export PATH="$HOME/.pyenv/bin:$PATH"; eval "$(pyenv init -)"; pip install jedi-language-server
+- name: Install neovim plugins
+  ansible.builtin.command: mise exec -- nvim --headless "+PlugInstall --sync" +qa
+  args:
+    creates: "{{ ansible_facts.env.HOME }}/.local/share/nvim/plugged"

@@ -1,11 +1,10 @@
-- name: deploy self
+---
+- name: Deploy self
   hosts: localhost
-  become: yes
   roles:
     - common
-    - pyenv
-    - rbenv
-    - nvm
+    - dotfiles
+    - mise
     - neovim
-    - docker
     - tmux
+    - docker

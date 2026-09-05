@@ -1,22 +1,52 @@
-user_name: dev
-temp_dir: /tmp
-src_dir: /usr/local/src
-tmux_version: 3.4
-tmux_source_url: https://github.com/tmux/tmux/releases/download/{{tmux_version}}/tmux-{{tmux_version}}.tar.gz
-vim_url: https://github.com/vim/vim.git
-vim_conf_option: --prefix=/usr/local --with-features=huge --enable-multibyte --enable-python3interp --enable-rubyinterp --enable-luainterp --enable-cscope --enable-fail-if-missing --with-lua-prefix=/usr/include/lua5.3
-vim_version: 9.1
-neovim_url: https://github.com/neovim/neovim.git
-neovim_version: v0.10.1
-pybenv_url: https://github.com/yyuu/pyenv.git
-python_version: 3.12.6
-heroku_toolbelt_file: heroku-cli-linux-x64.tar.gz
-heroku_toolbelt_url: https://cli-assets.heroku.com/heroku-cli/channels/stable/{{heroku_toolbelt_file}}
-rbenv_url: https://github.com/sstephenson/rbenv.git
-ruby_build_url: https://github.com/sstephenson/ruby-build.git
-ruby_version: 3.3.5
-docker_compose_version: 2.29.2
-vim_plug_url: https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim
-nodejs_version: 20.17.0
-nodejs_major_version: 20
-nvm_version: v0.40.1
+---
+# Sakura Cloud の Ubuntu Server 26.04 LTS パブリックアーカイブの既定ユーザ
+user_name: ubuntu
+
+dotfiles_repo: https://github.com/takedah/dotfiles.git
+dotfiles_dir: "{{ ansible_facts.env.HOME }}/dotfiles"
+dotfiles_version: main
+
+# mise (https://mise.jdx.dev/installing-mise.html)
+mise_gpg_key_url: https://mise.jdx.dev/gpg-key.pub
+mise_apt_uri: https://mise.jdx.dev/deb
+
+python_version: "3.14.7"
+node_version: "24"
+
+# nvim の python3 / node provider 用。mise がバージョン変更時にも入れ直してくれる
+mise_default_python_packages:
+  - pynvim
+mise_default_npm_packages:
+  - neovim
+  - yarn
+  - diagnostic-languageserver
+
+# coc-settings.json と ale が PATH 上に要求するツール群
+python_cli_tools:
+  - jedi-language-server
+  - black
+  - isort
+  - flake8
+
+# apt と GitHub リリースでアーキテクチャの表記が違うので両方持つ
+deb_architecture: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'amd64' }}"
+nvim_architecture: "{{ 'arm64' if ansible_facts.architecture == 'aarch64' else 'x86_64' }}"
+
+neovim_version: v0.12.5
+neovim_tarball: nvim-linux-{{ nvim_architecture }}.tar.gz
+neovim_install_dir: /opt/nvim-{{ neovim_version }}
+# neovim はチェックサムを配布していないので自前で固定する。
+# neovim_version を上げたら必ずここも更新すること:
+#   curl -sfL <tarball url> | shasum -a 256
+neovim_checksums:
+  x86_64: sha256:bce0f56eda1f1b1db6eee8f4133d7a38813ea07933837dd1777411ca384c6875
+  arm64: sha256:1aa5ca085249580ae0f91eb14f27ec0919773ff2d99a163d03f3d6c21ac29725
+neovim_checksum: "{{ neovim_checksums[nvim_architecture] }}"
+
+# master ではなくタグで固定し、さらにチェックサムでタグの付け替えも検知する
+vim_plug_version: "0.14.0"
+vim_plug_url: https://raw.githubusercontent.com/junegunn/vim-plug/{{ vim_plug_version }}/plug.vim
+vim_plug_checksum: sha256:20b4c895f98d13848204698068c4dd031730d4e7c9c4b630d6273b9b9afcdcdb
+
+docker_gpg_key_url: https://download.docker.com/linux/ubuntu/gpg
+docker_apt_uri: https://download.docker.com/linux/ubuntu

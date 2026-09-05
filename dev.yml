@@ -1,8 +1,10 @@
-- name: deploy develop hosts
-  hosts: dev
-  become: yes
+---
+- name: Deploy develop hosts
+  hosts: develop
   roles:
     - common
-    - tmux
-    - pyenv
+    - dotfiles
+    - mise
     - neovim
+    - tmux
+    - docker

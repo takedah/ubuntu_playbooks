@@ -1,0 +1,34 @@
+---
+- name: Clone dotfiles
+  ansible.builtin.git:
+    repo: "{{ dotfiles_repo }}"
+    dest: "{{ dotfiles_dir }}"
+    version: "{{ dotfiles_version }}"
+    # 既に clone 済みの場合、サーバ上での編集を勝手に巻き戻さない
+    update: false
+
+- name: Create config directories
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.config/nvim"
+    state: directory
+    mode: "0755"
+
+# dotfiles/symbolic-link.sh と同じ対象。
+# .zshrc / .zprofile は macOS 専用なので張らない。
+- name: Link dotfiles into home
+  ansible.builtin.file:
+    src: "{{ dotfiles_dir }}/{{ item }}"
+    dest: "{{ ansible_facts.env.HOME }}/{{ item }}"
+    state: link
+    force: true
+  loop:
+    - .bashrc
+    - .profile
+    - .bash_profile
+    - .bash_aliases
+    - .tmux.conf
+    - .flake8
+    - .editorconfig
+    - .git-prompt.sh
+    - .config/nvim/init.vim
+    - .config/nvim/coc-settings.json

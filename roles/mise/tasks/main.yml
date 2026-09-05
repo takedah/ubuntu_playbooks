@@ -1,0 +1,57 @@
+---
+- name: Create apt keyring directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+- name: Add mise apt signing key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ mise_gpg_key_url }}"
+    dest: /etc/apt/keyrings/mise.asc
+    mode: "0644"
+
+- name: Add mise apt repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: mise
+    types: deb
+    uris: "{{ mise_apt_uri }}"
+    suites: stable
+    components: main
+    architectures: "{{ deb_architecture }}"
+    signed_by: /etc/apt/keyrings/mise.asc
+    state: present
+
+- name: Install mise
+  become: true
+  ansible.builtin.apt:
+    name: mise
+    state: present
+    update_cache: true
+
+# ランタイムを入れる前に置いておくと、以後バージョンを上げても
+# nvim の python3 / node provider が自動で入り直る。
+- name: Configure mise default packages
+  ansible.builtin.template:
+    src: default-packages.j2
+    dest: "{{ ansible_facts.env.HOME }}/{{ item.file }}"
+    mode: "0644"
+  vars:
+    packages: "{{ item.packages }}"
+  loop:
+    - {file: .default-python-packages, packages: "{{ mise_default_python_packages }}"}
+    - {file: .default-npm-packages, packages: "{{ mise_default_npm_packages }}"}
+
+- name: Pin global runtimes with mise
+  ansible.builtin.command: mise use --global --yes {{ item.spec }}
+  args:
+    creates: "{{ ansible_facts.env.HOME }}/.local/share/mise/installs/{{ item.path }}"
+  environment:
+    MISE_YES: "1"
+  loop:
+    - {spec: "python@{{ python_version }}", path: "python/{{ python_version }}"}
+    - {spec: "node@{{ node_version }}", path: "node/{{ node_version }}"}
+    - {spec: uv@latest, path: uv/latest}

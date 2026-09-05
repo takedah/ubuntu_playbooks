@@ -1,2 +1,6 @@
-- import_playbook: local.yml
-- import_playbook: dev.yml
+---
+- name: Deploy self
+  ansible.builtin.import_playbook: local.yml
+
+- name: Deploy develop hosts
+  ansible.builtin.import_playbook: dev.yml

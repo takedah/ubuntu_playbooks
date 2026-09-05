@@ -1,39 +1,46 @@
-- name: add dockers official GPG key
-  ansible.builtin.apt_key:
-    url: https://download.docker.com/linux/ubuntu/gpg
-    keyring: /usr/share/keyrings/docker-archive-keyring.gpg
+---
+- name: Create apt keyring directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
 
-- name: set up the stable repository
-  shell: >
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list
+- name: Add docker apt signing key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ docker_gpg_key_url }}"
+    dest: /etc/apt/keyrings/docker.asc
+    mode: "0644"
 
-- name: apt update
-  apt:
-    update_cache: yes
+- name: Add docker apt repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: docker
+    types: deb
+    uris: "{{ docker_apt_uri }}"
+    suites: "{{ ansible_facts.distribution_release }}"
+    components: stable
+    architectures: "{{ deb_architecture }}"
+    signed_by: /etc/apt/keyrings/docker.asc
+    state: present
 
-- name: install Docker Engine
-  apt:
+- name: Install docker engine
+  become: true
+  ansible.builtin.apt:
     name:
       - docker-ce
       - docker-ce-cli
       - containerd.io
-      - live-build
-      - python3-tomli
-      - python3-git
-      - python3-jinja2
+      - docker-buildx-plugin
+      # docker-compose v1 のバイナリ直取りはやめ、`docker compose` に統一
+      - docker-compose-plugin
+    state: present
+    update_cache: true
 
-- name: check exist or not src file
-  command: ls -l /usr/local/bin/docker-compose
-  ignore_errors: true
-  register: is_exist
-
-- name: download doccker-compose
-  shell: curl -L https://github.com/docker/compose/releases/download/{{docker_compose_version}}/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
-  when: is_exist.rc == 2
-
-- name: add exec privilege to docker-compose
-  file:
-    path: /usr/local/bin/docker-compose
-    state: file
-    mode: 0755
-  when: is_exist
+- name: Add user to the docker group
+  become: true
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: docker
+    append: true

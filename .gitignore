@@ -1,1 +1,2 @@
 *.retry
+.claude/settings.local.json

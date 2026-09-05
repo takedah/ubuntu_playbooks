@@ -1,2 +1,9 @@
-[dev]
+# さくらのクラウド上の開発サーバ。
+# ホスト名 `dev` は ~/.ssh/config のエイリアスを想定している。
+#
+#   Host dev
+#     HostName <サーバのグローバル IP>
+#     User ubuntu
+#     IdentityFile ~/.ssh/id_ed25519
+[develop]
 dev
