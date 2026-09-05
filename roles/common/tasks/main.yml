@@ -1,4 +1,17 @@
 ---
+# 旧版の docker ロールは apt_key と手書きの docker.list を使っていた。新版が作る
+# docker.sources と併存すると、同じリポジトリを別の鍵で二重定義することになり、
+# apt はソースリスト全体の読み込みを拒否する。そうなると以降の apt 操作が
+# すべて失敗するため、docker ロールではなくここで最初に片付ける。
+- name: Remove apt sources the old playbook wrote
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/apt/sources.list.d/docker.list
+    - /usr/share/keyrings/docker-archive-keyring.gpg
+
 # apt モジュールは通常実行なら python3-apt を自動で入れるが、--check では
 # 入れられずに失敗する。dry-run を最初に流せるよう raw で先回りしておく。
 - name: Ensure python3-apt is present
