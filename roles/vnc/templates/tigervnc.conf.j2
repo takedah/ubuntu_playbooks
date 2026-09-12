@@ -1,0 +1,7 @@
+# {{ ansible_managed }}
+# tigervncserver(1) が読む Perl 断片。$session は /usr/share/xsessions の
+# .desktop 名に対応する（xfce4-session が xfce.desktop を置く）。
+$session     = "{{ vnc_session }}";
+$geometry    = "{{ vnc_geometry }}";
+$localhost   = "yes";
+$desktopName = "{{ inventory_hostname }}{{ vnc_display }}";

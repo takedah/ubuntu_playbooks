@@ -1,0 +1,18 @@
+---
+# デスクトップは開発サーバに必須ではないので dev.yml には入れず、
+# 必要なときだけこの playbook を流す。
+#
+#   ansible-playbook -i develop vnc.yml
+#
+- name: Set up a vnc desktop
+  hosts: develop
+  vars_prompt:
+    - name: vnc_password
+      prompt: |-
+        VNC password
+        TigerVNC の VncAuth は 8 文字を超える分を捨てるので、9 文字目以降は
+        意味がない。ログインパスワードの使い回しは避けること
+      private: true
+      confirm: true
+  roles:
+    - vnc

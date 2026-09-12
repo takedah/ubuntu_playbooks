@@ -1,0 +1,93 @@
+---
+# vnc.yml の vars_prompt で受け取る。パスワードを扱うタスクには no_log を
+# 付けてあり、未定義のまま走らせるとエラーが読めなくなるので先に弾く。
+- name: Require a vnc password
+  ansible.builtin.assert:
+    that: vnc_password | default("", true) | length > 0
+    fail_msg: vnc_password is unset. Use vnc.yml, which prompts for it.
+    quiet: true
+
+# xfce4 の Recommends には xorg と lightdm が含まれる。ヘッドレスの VM では
+# 存在しないコンソールにログイン画面を出す lightdm は邪魔でしかなく、X サーバも
+# Xtigervnc 自身が担うので xserver-xorg は要らない。Recommends を残すと
+# 150 → 460 パッケージまで膨らむため、ここでは明示的に切る。
+- name: Install the xfce desktop
+  become: true
+  ansible.builtin.apt:
+    name: "{{ vnc_desktop_packages }}"
+    state: present
+    install_recommends: false
+    update_cache: true
+    cache_valid_time: 3600
+
+# こちらは Recommends を残す。xfonts-base と x11-xserver-utils が無いと
+# /etc/X11/Xsession がフォントと xrdb を引けずセッションが立ち上がらない。
+- name: Install the tigervnc server
+  become: true
+  ansible.builtin.apt:
+    name: "{{ vnc_server_packages }}"
+    state: present
+
+# vncserver-config-mandatory はユーザ設定とコマンドラインの両方を
+# 上書きする。ループバック限定をここに書いておくと、ユーザ側の設定ミスで
+# 意図せず LAN に露出することがなくなる。中身は Perl なので perl -c で検証する。
+- name: Force the vnc server to listen on loopback only
+  become: true
+  ansible.builtin.blockinfile:
+    path: /etc/tigervnc/vncserver-config-mandatory
+    marker: '# {mark} ANSIBLE MANAGED BLOCK'
+    block: |
+      $localhost = "yes";
+      $SecurityTypes = "VncAuth";
+    validate: perl -c %s
+  notify: Restart the vnc server
+
+- name: Assign the display to the connecting user
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/tigervnc/vncserver.users
+    regexp: "^{{ vnc_display }}="
+    line: "{{ vnc_display }}={{ user_name }}"
+  notify: Restart the vnc server
+
+# ~/.vnc ではなく ~/.config/tigervnc を作る。~/.vnc を作ると tigervncserver が
+# ~/.config/tigervnc への移行を試み、~/.config が無いと mv が失敗して
+# 起動そのものがこけるため。
+- name: Create the tigervnc config directory
+  ansible.builtin.file:
+    path: "{{ vnc_user_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Write the vnc user config
+  ansible.builtin.template:
+    src: tigervnc.conf.j2
+    dest: "{{ vnc_user_dir }}/tigervnc.conf"
+    mode: "0644"
+  notify: Restart the vnc server
+
+# tigervncpasswd -f は標準入力の平文を難読化して標準出力に出す。環境変数で
+# 渡すことで引数に載らず ps からも見えない。同じパスワードなら毎回同じ内容に
+# なるが、平文を保持していないので比較はできない。creates で初回だけ走らせ、
+# 変更したいときは passwd を消してから流し直す。
+- name: Set the vnc password
+  ansible.builtin.shell:
+    cmd: set -o pipefail && printf '%s' "$VNC_PASSWORD" | tigervncpasswd -f > "{{ vnc_user_dir }}/passwd"
+    executable: /bin/bash
+    creates: "{{ vnc_user_dir }}/passwd"
+  environment:
+    VNC_PASSWORD: "{{ vnc_password }}"
+  no_log: true
+
+- name: Restrict the vnc password file
+  ansible.builtin.file:
+    path: "{{ vnc_user_dir }}/passwd"
+    mode: "0600"
+
+- name: Enable the vnc server
+  become: true
+  ansible.builtin.systemd_service:
+    name: tigervncserver@{{ vnc_display }}.service
+    enabled: true
+    state: started
+    daemon_reload: true

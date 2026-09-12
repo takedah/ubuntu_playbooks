@@ -20,7 +20,7 @@ Neovim と tmux の設定は dotfiles リポジトリが正となる。
 
 ## Requirements
 
-- 手元に Ansible（core 2.15 以降。`deb822_repository` モジュールを使う）
+- 手元に Ansible（core 2.17 以降。`deb822_repository` と `systemd_service` を使う）
 - 対象サーバへ公開鍵で SSH できること
   さくらのクラウドの通常アーカイブには cloud-init が入っていないので、
   公開鍵はサーバ作成時にコントロールパネルで投入しておく
@@ -68,6 +68,64 @@ $ ansible-playbook -i local local.yml --ask-become-pass
    headless での `CocInstall -sync` は不安定なので Playbook では実行していない
 3. `:checkhealth` で provider の状態を確認する
    `python3` と `node` が OK、`ruby` / `perl` は disabled になっていれば想定どおり
+
+## VNC デスクトップ
+
+開発サーバに XFCE デスクトップを立て、手元の VNC クライアントから操作する。
+常用する想定ではないので `dev.yml` には入れず、必要なときだけ流す。
+
+```console
+$ ansible-playbook -i develop vnc.yml
+```
+
+VNC パスワードを対話で聞かれる。TigerVNC の VncAuth は **8 文字を超える分を
+捨てる**ので、9 文字目以降を付けても意味がない。ログインパスワードの
+使い回しは避けること。
+
+### 接続する
+
+VNC は `127.0.0.1:5901` でしか待ち受けない。SSH トンネルを張って繋ぐ。
+
+```console
+$ ssh -L 5901:localhost:5901 dev
+```
+
+トンネルを張ったまま、別の端末から VNC クライアントを `localhost:5901` へ
+向ける。macOS なら標準の画面共有でよい。
+
+```console
+$ open vnc://localhost:5901
+```
+
+### 構成
+
+| | |
+|---|---|
+| デスクトップ | XFCE（`vnc_desktop_packages`） |
+| ディスプレイ番号 | `:1` = TCP 5901（`vnc_display`） |
+| 解像度 | 1920x1080（`vnc_geometry`） |
+| 待ち受け | ループバックのみ |
+| サービス | `tigervncserver@:1.service` |
+| 設定ディレクトリ | `~/.config/tigervnc`（`~/.vnc` は TigerVNC 1.13 以前の旧パス） |
+
+ループバック限定は `/etc/tigervnc/vncserver-config-mandatory` に書いている。
+このファイルはユーザの `~/.config/tigervnc/tigervnc.conf` とコマンドラインの**両方を
+上書きする**ので、設定ミスで LAN に露出することがない。
+
+XFCE は Recommends を切って入れている。残すと `lightdm` と `xserver-xorg` が
+付いてきて 150 → 460 パッケージに膨らむが、ヘッドレスの VM ではどちらも
+不要（X サーバは Xtigervnc 自身が担い、コンソールにログイン画面は要らない）。
+
+### パスワードを変える
+
+`~/.config/tigervnc/passwd` は難読化された 8 バイトで、平文を持っていない
+ため差分が取れない。初回だけ作る作りにしてあるので、変更するときは消して
+から流し直す。
+
+```console
+$ ssh dev rm .config/tigervnc/passwd
+$ ansible-playbook -i develop vnc.yml
+```
 
 ## 旧版で構築済みのホストへ適用するとき
 
