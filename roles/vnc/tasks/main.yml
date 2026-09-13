@@ -20,6 +20,79 @@
     update_cache: true
     cache_valid_time: 3600
 
+- name: Create apt keyring directory
+  become: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+
+# deb822_repository の依存。common ロールも入れているが、vnc.yml は単独でも
+# 流せる建て付けなのでここでも確保しておく。
+- name: Ensure the deb822_repository dependency is present
+  become: true
+  ansible.builtin.apt:
+    name: python3-debian
+    state: present
+
+- name: Add mozilla apt signing key
+  become: true
+  ansible.builtin.get_url:
+    url: "{{ mozilla_gpg_key_url }}"
+    dest: /etc/apt/keyrings/packages.mozilla.org.asc
+    mode: "0644"
+
+- name: Add mozilla apt repository
+  become: true
+  ansible.builtin.deb822_repository:
+    name: mozilla
+    types: deb
+    uris: "{{ mozilla_apt_uri }}"
+    suites: mozilla
+    components: main
+    architectures: "{{ deb_architecture }}"
+    signed_by: /etc/apt/keyrings/packages.mozilla.org.asc
+    state: present
+
+# Ubuntu の firefox はエポック 1: を持つので、放っておくと Mozilla の
+# 155.0.1~build1 より上位に並び、snap 版が選ばれてしまう。このリポジトリには
+# firefox* と mozillavpn しか無いため、firefox* だけに絞ってピンする。
+- name: Prefer the mozilla build over the ubuntu snap wrapper
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/apt/preferences.d/mozilla
+    content: |
+      Package: firefox*
+      Pin: origin packages.mozilla.org
+      Pin-Priority: 1000
+    mode: "0644"
+
+- name: Install firefox
+  become: true
+  ansible.builtin.apt:
+    name: "{{ vnc_browser_packages }}"
+    state: present
+    update_cache: true
+
+- name: Create the xfce config directory
+  ansible.builtin.file:
+    path: "{{ ansible_facts.env.HOME }}/.config/xfce4"
+    state: directory
+    mode: "0755"
+
+# ブラウザが一つも無いと exo は debian-sensible-browser を選ぶ。その
+# sensible-browser は x-www-browser の次に "sensible-terminal -e www-browser"
+# を試すため、端末が www-browser の起動に失敗して
+# "Failed to execute child process" のダイアログが出る。firefox を明示して
+# おけば sensible-browser を経由せず直接起動する。
+- name: Make firefox the preferred web browser in xfce
+  ansible.builtin.lineinfile:
+    path: "{{ ansible_facts.env.HOME }}/.config/xfce4/helpers.rc"
+    regexp: "^WebBrowser="
+    line: WebBrowser=firefox
+    create: true
+    mode: "0644"
+
 # こちらは Recommends を残す。xfonts-base と x11-xserver-utils が無いと
 # /etc/X11/Xsession がフォントと xrdb を引けずセッションが立ち上がらない。
 - name: Install the tigervnc server

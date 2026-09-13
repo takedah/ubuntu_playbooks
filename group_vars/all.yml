@@ -73,6 +73,16 @@ vnc_desktop_packages:
   # 日本語のファイル名やメニューが豆腐にならないように
   - fonts-noto-cjk
 
+# Ubuntu の firefox は snap を入れるだけの transitional パッケージで、
+# さくらのクラウドのアーカイブには snapd が無い。Mozilla 公式リポジトリの
+# 実体 deb を使う (https://support.mozilla.org/kb/install-firefox-linux)
+mozilla_gpg_key_url: https://packages.mozilla.org/apt/repo-signing-key.gpg
+mozilla_apt_uri: https://packages.mozilla.org/apt
+
+vnc_browser_packages:
+  - firefox
+  - firefox-l10n-ja
+
 vnc_server_packages:
   - tigervnc-standalone-server
   - tigervnc-common

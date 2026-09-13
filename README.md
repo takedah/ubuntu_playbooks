@@ -102,6 +102,7 @@ $ open vnc://localhost:5901
 | | |
 |---|---|
 | デスクトップ | XFCE（`vnc_desktop_packages`） |
+| ブラウザ | Firefox（Mozilla 公式リポジトリの deb、`vnc_browser_packages`） |
 | ディスプレイ番号 | `:1` = TCP 5901（`vnc_display`） |
 | 解像度 | 1920x1080（`vnc_geometry`） |
 | 待ち受け | ループバックのみ |
@@ -115,6 +116,34 @@ $ open vnc://localhost:5901
 XFCE は Recommends を切って入れている。残すと `lightdm` と `xserver-xorg` が
 付いてきて 150 → 460 パッケージに膨らむが、ヘッドレスの VM ではどちらも
 不要（X サーバは Xtigervnc 自身が担い、コンソールにログイン画面は要らない）。
+
+### ブラウザ
+
+Ubuntu の `firefox` パッケージは snap を入れるだけの transitional パッケージ
+（`1:1snap1-...`、"Installs Firefox snap"）で、さくらのクラウドのアーカイブに
+snapd は含まれない。`chromium` に至っては archive にすら無い。そのため
+Mozilla 公式の apt リポジトリから実体の deb を入れている。
+
+Ubuntu 側の `firefox` はエポック `1:` を持つので、APT ピンを置かないと
+Mozilla の `155.0.1~build1` より上位に並んで snap 版が選ばれてしまう。
+`/etc/apt/preferences.d/mozilla` で `firefox*` だけを優先している。
+このリポジトリには `firefox*` と `mozillavpn` しか無いため、Mozilla が案内する
+`Package: *` より狭く絞ってある。
+
+XFCE の「Web Browser」ランチャーは `exo-open --launch WebBrowser` を呼ぶ。
+ブラウザが一つも入っていないと `debian-sensible-browser` が選ばれ、
+`sensible-browser` が最終手段の `www-browser` を起動しようとして
+
+```
+Failed to execute child process "www-browser": Failed to execve: No such file or directory.
+```
+
+になる。`~/.config/xfce4/helpers.rc` に `WebBrowser=firefox` を書くことで
+`sensible-browser` を経由せず直接起動させている。
+
+設定 → 「既定のアプリケーション」から別のブラウザに変えることもできるが、
+Playbook を流し直すと `WebBrowser=firefox` に戻る。恒久的に変えるなら
+`vnc_browser_packages` と合わせてロール側を直すこと。
 
 ### パスワードを変える
 
