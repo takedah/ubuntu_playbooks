@@ -103,6 +103,7 @@ $ open vnc://localhost:5901
 |---|---|
 | デスクトップ | XFCE（`vnc_desktop_packages`） |
 | ブラウザ | Firefox（Mozilla 公式リポジトリの deb、`vnc_browser_packages`） |
+| 日本語入力 | fcitx5 + Mozc（切り替えは Ctrl+Space） |
 | ディスプレイ番号 | `:1` = TCP 5901（`vnc_display`） |
 | 解像度 | 1920x1080（`vnc_geometry`） |
 | 待ち受け | ループバックのみ |
@@ -144,6 +145,52 @@ Failed to execute child process "www-browser": Failed to execve: No such file or
 設定 → 「既定のアプリケーション」から別のブラウザに変えることもできるが、
 Playbook を流し直すと `WebBrowser=firefox` に戻る。恒久的に変えるなら
 `vnc_browser_packages` と合わせてロール側を直すこと。
+
+### 日本語入力
+
+fcitx5 + Mozc。英語配列キーボードで半角/全角キーが無いため、切り替えは
+fcitx5 既定の **Ctrl+Space** をそのまま使う。非アクティブ時は
+`keyboard-us`、アクティブ化すると Mozc に入る。
+
+> Neovim の `init.vim` は `<c-space>` を `coc#refresh()` に割り当てている。
+> VNC デスクトップ内の端末で nvim を使うと、Ctrl+Space は fcitx5 に
+> 先に取られる。変えるなら `fcitx5-config-qt` の「Global Options」から。
+
+セットアップで踏んだ罠を2つ記録しておく。どちらも「パッケージを入れても
+日本語が打てない」で終わる類のもの。
+
+**im-config の auto モードは英語ロケールで効かない**
+`im-config` の auto は、デスクトップが `CJKV_DEFAULT_DESKTOP` に載っていて
+ロケールが CJKV でない場合に `none` を返す
+（`/usr/share/im-config/xinputrc.common` の `echo_cjkv_selected_im`）。
+そのため `~/.xinputrc` に `run_im fcitx5` と明示している。
+これが無いと `/etc/X11/Xsession.d/70im-config_launch` が何も起動しない。
+
+**fcitx5 の自動グループ生成に Mozc が入るのは LANG が日本語のときだけ**
+fcitx5 は有効なグループが無いと起動時に自動生成するが、その中身は
+ロケールで変わる。
+
+| ロケール | 生成されるグループ |
+|---|---|
+| `LANG=C.UTF-8` | `keyboard-us` のみ |
+| `LANG=C.UTF-8 LC_CTYPE=ja_JP.UTF-8` | `keyboard-us` のみ |
+| `LANG=ja_JP.UTF-8` | `keyboard-us`, `mozc` |
+
+`keyboard-us` だけのグループでは Ctrl+Space を押しても切り替わる先が無い。
+UI 言語を英語のままにしたいので、`~/.config/fcitx5/profile` にグループを
+書いて LANG に依存させていない。
+
+この profile は `force: false` で置いている。`fcitx5-config-qt` で入力
+メソッドを足したり既定を変えたりした結果を、流し直しで巻き戻さないため。
+初期状態からやり直したいときは消してから流す。
+
+```console
+$ ssh dev rm .config/fcitx5/profile
+$ ansible-playbook -i develop vnc.yml
+```
+
+`ja_JP.UTF-8` ロケールは生成してあるので、デスクトップごと日本語にしたい
+場合は `LANG` を切り替えればよい。
 
 ### パスワードを変える
 

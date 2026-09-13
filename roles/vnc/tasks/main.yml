@@ -93,6 +93,69 @@
     create: true
     mode: "0644"
 
+- name: Install the japanese input method
+  become: true
+  ansible.builtin.apt:
+    name: "{{ vnc_input_method_packages }}"
+    state: present
+    install_recommends: false
+
+- name: Enable the japanese locale
+  become: true
+  ansible.builtin.lineinfile:
+    path: /etc/locale.gen
+    regexp: "^#?\\s*{{ vnc_locale }} UTF-8$"
+    line: "{{ vnc_locale }} UTF-8"
+  notify: Regenerate locales
+
+# im-config の auto モードは、デスクトップが CJKV_DEFAULT_DESKTOP にあって
+# ロケールが CJKV でないと none を返す (xinputrc.common の
+# echo_cjkv_selected_im)。UI 言語を英語のままにしたいので auto に任せず、
+# fcitx5 を名指しする。
+- name: Select fcitx5 as the input method framework
+  ansible.builtin.copy:
+    dest: "{{ ansible_facts.env.HOME }}/.xinputrc"
+    content: |
+      run_im fcitx5
+    mode: "0644"
+
+- name: Create the fcitx5 config directory
+  ansible.builtin.file:
+    path: "{{ vnc_fcitx5_dir }}"
+    state: directory
+    mode: "0700"
+
+# fcitx5 は有効なグループが無いと起動時に自動生成するが、そこに mozc が
+# 入るのは LANG が ja_JP.UTF-8 のときだけで、それ以外では keyboard-us
+# だけのグループになり Ctrl+Space を押しても切り替わらない。グループを
+# 明示して LANG に依存させない。
+#
+# force: false なのは、GUI で入力メソッドを足したり既定を変えたりした結果を
+# 流し直しで巻き戻さないため。初期状態だけ用意して以後は触らない。
+- name: Configure the fcitx5 input method group
+  ansible.builtin.copy:
+    dest: "{{ vnc_fcitx5_dir }}/profile"
+    force: false
+    content: |
+      [Groups/0]
+      Name=Default
+      Default Layout=us
+      # Ctrl+Space で非アクティブ (keyboard-us) との間を行き来する。
+      # DefaultIM はアクティブ側に入る IM なので mozc を置く
+      DefaultIM=mozc
+
+      [Groups/0/Items/0]
+      Name=keyboard-us
+      Layout=
+
+      [Groups/0/Items/1]
+      Name=mozc
+      Layout=
+
+      [GroupOrder]
+      0=Default
+    mode: "0644"
+
 # こちらは Recommends を残す。xfonts-base と x11-xserver-utils が無いと
 # /etc/X11/Xsession がフォントと xrdb を引けずセッションが立ち上がらない。
 - name: Install the tigervnc server

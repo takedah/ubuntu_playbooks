@@ -83,6 +83,24 @@ vnc_browser_packages:
   - firefox
   - firefox-l10n-ja
 
+# 日本語入力 (fcitx5 + Mozc)。英語配列キーボード前提なので、切り替えは
+# 半角/全角キーではなく fcitx5 既定の Ctrl+Space を使う。
+vnc_input_method_packages:
+  - fcitx5
+  - fcitx5-mozc
+  # 設定 GUI。切り替えキーや候補ウィンドウの見た目はここから変える
+  - fcitx5-config-qt
+  # Firefox と XFCE は GTK3、新しめのアプリは GTK4
+  - fcitx5-frontend-gtk3
+  - fcitx5-frontend-gtk4
+  # /etc/X11/Xsession.d/70im-config_launch を提供する。fcitx5 は XDG
+  # autostart を持たないため、セッション開始時の起動はこれが担う
+  - im-config
+  - locales
+
+vnc_locale: ja_JP.UTF-8
+vnc_fcitx5_dir: "{{ ansible_facts.env.HOME }}/.config/fcitx5"
+
 vnc_server_packages:
   - tigervnc-standalone-server
   - tigervnc-common
